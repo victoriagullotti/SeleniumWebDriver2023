@@ -1,11 +1,15 @@
 import time
 
+import pytest
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
 
 class TestPositiveScenarios:
+
+    @pytest.mark.login
+    @pytest.mark.positive
     def test_positive_login(self):
         #   Create Chrom driver
         driver = webdriver.Chrome(ChromeDriverManager().install())
