@@ -1,19 +1,6 @@
 import time
 import pytest
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
-
-#   Fixture
-@pytest.fixture()
-def driver():
-    print("Creating chrome driver")
-    my_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-
-    yield driver
-    print("Closing chrome driver")
-    my_driver.quit()
 
 
 class TestNegativeScenarios:
@@ -21,17 +8,19 @@ class TestNegativeScenarios:
     def test_negative_username(self, driver):
         @pytest.mark.login
         @pytest.mark.negative
-        def test_positive_login(self):
+        @pytest.mark.parametrize("user, password, expected_error",
+                                 [('wrong user', "Password123"), ('user', "Password123")])  # Built in method allows to give data
+        def test_positive_login(self, my_driver):
             #   Create Chrom driver
-            my_driver = webdriver.Chrome(ChromeDriverManager().install())
-            time.sleep(5)  # Sleep 5 sec
+            # my_driver = webdriver.Chrome(ChromeDriverManager().install())
+            # Stime.sleep(5)  # Sleep 5 sec
 
             #   Open browser
-            driver.get('https://practicetestautomation.com/practice-test-login/')
+            my_driver.get('https://practicetestautomation.com/practice-test-login/')
 
             #   Type username
             username_locator = driver.find_element(By.ID, 'username')
-            username_locator.send_keys('khcljc')
+            username_locator.send_keys('wrong user')
 
             #   Type password
             password_locator = driver.find_element(By.NAME, 'password')

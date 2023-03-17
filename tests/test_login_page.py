@@ -1,8 +1,6 @@
 import time
 
 import pytest
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
 
@@ -10,14 +8,13 @@ class TestPositiveScenarios:
 
     @pytest.mark.login
     @pytest.mark.positive
-    def test_positive_login(self):
+    def test_positive_login(self, driver):
         #   Create Chrom driver
-        driver = webdriver.Chrome(ChromeDriverManager().install())
-        time.sleep(5)  # Sleep 5 sec
+        #driver = webdriver.Chrome(ChromeDriverManager().install())
+        #time.sleep(5)  # Sleep 5 sec
 
         #   Open browser
         driver.get('https://practicetestautomation.com/practice-test-login/')
-        time.sleep(5)  # Sleep 5 sec
 
         time.sleep(5)  # Sleep 5 sec
 
