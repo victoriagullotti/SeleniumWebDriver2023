@@ -9,7 +9,7 @@ class TestPositiveScenarios:
     @pytest.mark.login
     @pytest.mark.positive
     def test_positive_login(self, driver):
-        #   Create Chrom driver
+        #   Create Chrome driver
         #driver = webdriver.Chrome(ChromeDriverManager().install())
         #time.sleep(5)  # Sleep 5 sec
 

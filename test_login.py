@@ -4,15 +4,15 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
-#   Create Chrom driver
+#   Create Chrome driver
 driver = webdriver.Chrome(ChromeDriverManager().install())
-time.sleep(5)   #Sleep 5 sec
+time.sleep(5)  # Sleep 5 sec
 
 #   Open browser
-driver.get( 'https://practicetestautomation.com/practice-test-login/')
-time.sleep(5)   #Sleep 5 sec
+driver.get('https://practicetestautomation.com/practice-test-login/')
+time.sleep(5)  # Sleep 5 sec
 
-time.sleep(5)   #Sleep 5 sec
+time.sleep(5)  # Sleep 5 sec
 
 #   Type username
 username_locator = driver.find_element(By.ID, 'username')
