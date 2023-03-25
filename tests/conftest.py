@@ -5,9 +5,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
 
-@pytest.fixture()
+#   This is a fixture. It is called by pytest before test execution.
+#   Fixture is a function that will run before each test. Similar to @Decorator
+@pytest.fixture(params=["chrome", "firefox"])
 def driver(request):
-    browser = request.config.getoption("--browser")  # Getting browser from command line!!!
+    #browser = request.config.getoption("--browser")  # Getting browser from command line!!!
+    browser = request.param
+
     print(f" Creating {browser} driver")
 
     #   Create driver based on browser type
@@ -15,6 +19,8 @@ def driver(request):
         my_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     elif browser == 'firefox':
         my_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+    elif browser == 'safari':
+        my_driver = webdriver.Safari()
     else:
         raise Exception(f' Browser {browser} is not supported')
 
