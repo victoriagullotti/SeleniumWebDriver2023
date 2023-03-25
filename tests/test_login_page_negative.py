@@ -11,8 +11,9 @@ class TestNegativeScenarios:
     @pytest.mark.parametrize("username, password, expected_error_message",
                              [("incorrectUser", "Password123", "Your username is invalid!"),
                               ("student", "incorrectPassword", "Your password is invalid!")])
+    #   Ts1: Verify that error message is displayed when username is incorrect
     def test_negative_login(self, driver, username, password, expected_error_message):
-        # Open page
+        # Open test page
         driver.get("https://practicetestautomation.com/practice-test-login/")
 
         # Type username incorrectUser into Username field
@@ -23,7 +24,7 @@ class TestNegativeScenarios:
         password_locator = driver.find_element(By.NAME, "password")
         password_locator.send_keys(password)
 
-        # Push Submit button
+        # Push Submit button class='btn'
         submit_button_locator = driver.find_element(By.XPATH, "//button[@class='btn']")
         submit_button_locator.click()
         time.sleep(2)
@@ -36,6 +37,7 @@ class TestNegativeScenarios:
         error_message = error_message_locator.text
         assert error_message == expected_error_message, "Error message is not expected"
 
+#   Ts2: Verify that error message is displayed when username is incorrect
     def test_negative_username(self, driver):
         # Open page
         driver.get("https://practicetestautomation.com/practice-test-login/")
@@ -61,6 +63,7 @@ class TestNegativeScenarios:
         error_message = error_message_locator.text
         assert error_message == "Your username is invalid!", "Error message is not expected"
 
+    #   Ts3: Verify that error message is displayed when password is incorrect
     def test_negative_password(self, driver):
         # Open page
         driver.get("https://practicetestautomation.com/practice-test-login/")
