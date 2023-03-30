@@ -7,9 +7,12 @@ from webdriver_manager.firefox import GeckoDriverManager
 
 #   This is a fixture. It is called by pytest before test execution.
 #   Fixture is a function that will run before each test. Similar to @Decorator
-@pytest.fixture(params=["chrome", "firefox"])
+#   The process is split into 8 parallel processes (number of Cores on computer). Each process will run one test.
+#   -m login --html=reports\report.html -n=8    !!!
+@pytest.fixture(params=["chrome"])
+#@pytest.fixture(params=["chrome", "firefox"])
 def driver(request):
-    #browser = request.config.getoption("--browser")  # Getting browser from command line!!!
+    # browser = request.config.getoption("--browser")  # Getting browser from command line!!!
     browser = request.param
 
     print(f" Creating {browser} driver")
@@ -19,10 +22,13 @@ def driver(request):
         my_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     elif browser == 'firefox':
         my_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
-    elif browser == 'safari':
+    elif browser == 'safari':  # Safari is not supported anymore
         my_driver = webdriver.Safari()
     else:
         raise Exception(f' Browser {browser} is not supported')
+
+    #   Implicit wait 10 sec for all elements on the page to be loaded!!!
+    my_driver.implicitly_wait(10)  # Implicit wait
 
     yield my_driver
     print(f' Closing {browser} driver')
