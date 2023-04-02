@@ -1,16 +1,6 @@
-class LoggedInSuccessfully:
-    __ulr = "http://the-internet.herokuapp.com/secure"
-
-
-    def __init__(self, driver):
-        super().__init__(driver)
-        self.driver = driver
-
-    def click_logout(self):
-        self.driver.find_element_by_link_text("Log out").click()
-    def __init__(self, driver):
-        super().__init__(driver)
-        self.driver = driver
-
-    def click_logout(self):
-        self.driver.find_element_by_link_text("Log out").click()
+def is_log_out_button_present(self) ->:
+    try:
+        self.driver.find_element_by_xpath(self.log_out_button_xpath).is_displayed()
+        return True
+    except:
+        return False
