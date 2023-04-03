@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from page_objets.base_page import BasePage
+from page_objects.base_page import BasePage
 
 
 class LoggedInSuccessfullyPage(BasePage):
@@ -10,7 +10,7 @@ class LoggedInSuccessfullyPage(BasePage):
     __log_out_button_locator = (By.LINK_TEXT, "Log out")
 
     def __init__(self, driver: WebDriver):
-        super().__init__()
+        super().__init__(driver)
 
     @property
     def expected_url(self) -> str:
@@ -21,4 +21,4 @@ class LoggedInSuccessfullyPage(BasePage):
         return super()._get_text(self.__header_locator)
 
     def is_logout_button_displayed(self) -> bool:
-        return super().is_displayed(self.__log_out_button_locator)
+        return super()._is_displayed(self.__log_out_button_locator)
