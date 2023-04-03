@@ -5,8 +5,8 @@ from selenium.webdriver.common.by import By
 
 class TestPositiveScenarios:
 
-    @pytest.mark.login
-    @pytest.mark.positive
+    @pytest.mark.login_old
+    @pytest.mark.positive_old
     def test_positive_login(self, driver):
 
         #   Open browser

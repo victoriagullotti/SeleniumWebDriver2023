@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 class TestExceptions:
 
-    @pytest.mark.exceptions
+    @pytest.mark.exceptions_old
     def test_no_such_element_exception(self, driver):
         # Open page
         driver.get("https://practicetestautomation.com/practice-test-exceptions/")
@@ -28,8 +28,8 @@ class TestExceptions:
         assert row_2_input_locator.is_displayed(), "Row 2 input should be displayed, but it's not"
 
 
-    @pytest.mark.exceptions
-    @pytest.mark.debug
+    @pytest.mark.exceptions_old
+    @pytest.mark.debug_old
     def test_element_not_interactable_exception(self, driver):
         # Open page
         driver.get("https://practicetestautomation.com/practice-test-exceptions/")
@@ -52,7 +52,7 @@ class TestExceptions:
         # Verify that text saved
         assert row_2_input_locator.get_attribute("value") == "Test", "Text is not saved"
 
-    @pytest.mark.exceptions
+    @pytest.mark.exceptions_old
     def test_invalid_element_state_exception(self, driver):
         # Open page
         driver.get("https://practicetestautomation.com/practice-test-exceptions/")
@@ -80,8 +80,8 @@ class TestExceptions:
                                                   message="Confirmation message is not displayed")
         assert confirmation_message_locator.is_displayed(), "Confirmation message is not displayed"
 
-    @pytest.mark.exceptions
-    @pytest.mark.debug
+    @pytest.mark.exceptions_old
+    @pytest.mark.debug_old
     def test_stale_element_reference_exception(self, driver):
         # Open page
         driver.get("https://practicetestautomation.com/practice-test-exceptions/")
@@ -96,8 +96,8 @@ class TestExceptions:
         wait = WebDriverWait(driver, 10)
         assert wait.until(EC.invisibility_of_element_located((By.ID, "instruction")))
 
-    @pytest.mark.exceptions
-    @pytest.mark.debug
+    @pytest.mark.exceptions_old
+    @pytest.mark.debug_old
     def test_timeout_exception(self, driver):
         # Open page
         driver.get("https://practicetestautomation.com/practice-test-exceptions/")
