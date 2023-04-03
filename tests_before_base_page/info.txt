@@ -1,0 +1,2 @@
+This directory test_before_base_page is not a valid test directory. It should be a subdirectory of the test directory.
+This is just a copy of the test directory created befor the base page was created. It is not used anymore.

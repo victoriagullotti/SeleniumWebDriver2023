@@ -1,7 +1,9 @@
 from selenium.webdriver.chrome.webdriver import WebDriver
 
+from page_objets.base_page import BasePage
 
-class LoginPage:
+
+class LoginPage(BasePage):
 
     # Private variables
     __url = "https://practicetestautomation.com/practice-test-login/"
@@ -11,23 +13,15 @@ class LoginPage:
 
     # Constructor
     def __init__(self, driver: WebDriver):
-        self._driver = driver
+        super().__init__(driver)
 
     # Public methods
     def open(self):
-        self.driver.get(self.__url)
+        super().open(self.__url)
 
-def execute_login(driver, username, password):
+    def execute_login(driver, username, password):
 
-    # 1 wait for all elements to be present!!!
-    wait = WebDriverWait(self._driver, 10)
-    wait.until(EC.presence_of_element_located(self.__username_field))
-    wait.until(EC.presence_of_element_located(self.__password_field))
-    wait.until(EC.presence_of_element_located(self.__submit_button))
+        super._type(self.__username_field, username)
+        super._type(self.__password_field, password)
+        super._click(self.__submit_button)
 
-    # 2 Send keys to username and password fields
-    self._driver.find_element(*self.__username_field).send_keys(username)
-
-    self._driver.find_element(*self.__password_field).send_keys(password)
-
-    self._driver.find_element(*self.__submit_button).click()
