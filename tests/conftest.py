@@ -9,8 +9,9 @@ from webdriver_manager.firefox import GeckoDriverManager
 #   Fixture is a function that will run before each test. Similar to @Decorator
 #   The process is split into 8 parallel processes (number of Cores on computer). Each process will run one test.
 #   -m login --html=reports\report.html -n=8    !!!
-@pytest.fixture(params=["chrome"])
-#@pytest.fixture(params=["chrome", "firefox"])
+#   @pytest.fixture(params=["chrome"])
+#@pytest.fixture()
+@pytest.fixture(params=["chrome", "firefox"])
 def driver(request):
     # browser = request.config.getoption("--browser")  # Getting browser from command line!!!
     browser = request.param

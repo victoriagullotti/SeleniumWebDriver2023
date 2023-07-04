@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>login-report.html</title>
+    <link href="assets/style.css" rel="stylesheet" type="text/css"/></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    let visibleString = getQueryParameter('visible') || 'all';
+    visibleString = visibleString.toLowerCase();
+    const checkedItems = visibleString.split(',');
+
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++) {
+        filterItems[i].hidden = false;
+
+        if (visibleString != 'all') {
+            filterItems[i].checked = checkedItems.includes(filterItems[i].getAttribute('data-test-result'));
+            filterTable(filterItems[i]);
+        }
+    }
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>login-report.html</h1>
+    <p>Report generated on 04-Jul-2023 at 18:55:27 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h2>Summary</h2>
+    <p>3 tests ran in 13.77 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">3 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">3 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="error results-table-row">
+        <tr>
+          <td class="col-result">Error</td>
+          <td class="col-name">tests/test_login_page_negative.py::TestNegativeScenarios::test_negative_login[firefox-incorrectUser-Password123-Your username is invalid!]::setup</td>
+          <td class="col-duration">3.66</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">[gw2] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/>[gw2] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/><br/>request = &lt;SubRequest &#x27;driver&#x27; for &lt;Function test_negative_login[firefox-incorrectUser-Password123-Your username is invalid!]&gt;&gt;<br/><br/>    @pytest.fixture(params=[&quot;chrome&quot;, &quot;firefox&quot;])<br/>    def driver(request):<br/>        # browser = request.config.getoption(&quot;--browser&quot;)  # Getting browser from command line!!!<br/>        browser = request.param<br/>    <br/>        print(f&quot; Creating {browser} driver&quot;)<br/>    <br/>        #   Create driver based on browser type<br/>        if browser == &#x27;chrome&#x27;:<br/>            my_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))<br/>        elif browser == &#x27;firefox&#x27;:<br/>&gt;           my_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())<br/><span class="error">E           TypeError: __init__() got an unexpected keyword argument &#x27;executable_path&#x27;</span><br/><br/>conftest.py:25: TypeError[gw2] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/> -----------------------------Captured stdout setup------------------------------ <br/> Creating firefox driver
+<br/> -----------------------------Captured stderr setup------------------------------ <br/>[WDM] - Downloading:   0%|          | 0.00/2.73k [00:00&lt;?, ?B/s][WDM] - Downloading: 19.2kB [00:00, 31.7MB/s]                   
+[WDM] - Downloading:   0%|          | 0.00/1.85M [00:00&lt;?, ?B/s][WDM] - Downloading:  11%|█         | 208k/1.85M [00:00&lt;00:00, 2.08MB/s][WDM] - Downloading:  42%|████▏     | 792k/1.85M [00:00&lt;00:00, 4.35MB/s][WDM] - Downloading:  76%|███████▌  | 1.41M/1.85M [00:00&lt;00:00, 5.35MB/s][WDM] - Downloading: 100%|██████████| 1.85M/1.85M [00:00&lt;00:00, 5.26MB/s]
+<br/></div></td></tr></tbody>
+      <tbody class="error results-table-row">
+        <tr>
+          <td class="col-result">Error</td>
+          <td class="col-name">tests/test_login_page_negative.py::TestNegativeScenarios::test_negative_login[firefox-student-incorrectPassword-Your password is invalid!]::setup</td>
+          <td class="col-duration">0.09</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">[gw2] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/>[gw2] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/><br/>request = &lt;SubRequest &#x27;driver&#x27; for &lt;Function test_negative_login[firefox-student-incorrectPassword-Your password is invalid!]&gt;&gt;<br/><br/>    @pytest.fixture(params=[&quot;chrome&quot;, &quot;firefox&quot;])<br/>    def driver(request):<br/>        # browser = request.config.getoption(&quot;--browser&quot;)  # Getting browser from command line!!!<br/>        browser = request.param<br/>    <br/>        print(f&quot; Creating {browser} driver&quot;)<br/>    <br/>        #   Create driver based on browser type<br/>        if browser == &#x27;chrome&#x27;:<br/>            my_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))<br/>        elif browser == &#x27;firefox&#x27;:<br/>&gt;           my_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())<br/><span class="error">E           TypeError: __init__() got an unexpected keyword argument &#x27;executable_path&#x27;</span><br/><br/>conftest.py:25: TypeError[gw2] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/> -----------------------------Captured stdout setup------------------------------ <br/> Creating firefox driver
+<br/></div></td></tr></tbody>
+      <tbody class="error results-table-row">
+        <tr>
+          <td class="col-result">Error</td>
+          <td class="col-name">tests/test_login_page.py::TestPositiveScenarios::test_positive_login[firefox]::setup</td>
+          <td class="col-duration">2.06</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">[gw0] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/>[gw0] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/><br/>request = &lt;SubRequest &#x27;driver&#x27; for &lt;Function test_positive_login[firefox]&gt;&gt;<br/><br/>    @pytest.fixture(params=[&quot;chrome&quot;, &quot;firefox&quot;])<br/>    def driver(request):<br/>        # browser = request.config.getoption(&quot;--browser&quot;)  # Getting browser from command line!!!<br/>        browser = request.param<br/>    <br/>        print(f&quot; Creating {browser} driver&quot;)<br/>    <br/>        #   Create driver based on browser type<br/>        if browser == &#x27;chrome&#x27;:<br/>            my_driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))<br/>        elif browser == &#x27;firefox&#x27;:<br/>&gt;           my_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())<br/><span class="error">E           TypeError: __init__() got an unexpected keyword argument &#x27;executable_path&#x27;</span><br/><br/>conftest.py:25: TypeError[gw0] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/> -----------------------------Captured stdout setup------------------------------ <br/> Creating firefox driver
+<br/> -----------------------------Captured stderr setup------------------------------ <br/>[WDM] - Downloading:   0%|          | 0.00/2.73k [00:00&lt;?, ?B/s][WDM] - Downloading: 19.2kB [00:00, 50.6MB/s]                   
+[WDM] - Downloading:   0%|          | 0.00/2.73k [00:00&lt;?, ?B/s][WDM] - Downloading: 19.2kB [00:00, 108MB/s]                    
+[WDM] - Downloading:   0%|          | 0.00/1.85M [00:00&lt;?, ?B/s][WDM] - Downloading:  14%|█▍        | 272k/1.85M [00:00&lt;00:00, 2.52MB/s][WDM] - Downloading:  51%|█████▏    | 976k/1.85M [00:00&lt;00:00, 5.10MB/s][WDM] - Downloading:  85%|████████▍ | 1.57M/1.85M [00:00&lt;00:00, 5.70MB/s][WDM] - Downloading: 100%|██████████| 1.85M/1.85M [00:00&lt;00:00, 5.49MB/s]
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/test_login_page.py::TestPositiveScenarios::test_positive_login[chrome]</td>
+          <td class="col-duration">9.45</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">[gw0] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/>[gw0] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python[gw0] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python[gw0] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/> -----------------------------Captured stdout setup------------------------------ <br/> Creating chrome driver
+<br/> -----------------------------Captured stderr setup------------------------------ <br/>[WDM] - Downloading:   0%|          | 0.00/7.40M [00:00&lt;?, ?B/s][WDM] - Downloading:   1%|▏         | 104k/7.40M [00:00&lt;00:07, 1.05MB/s][WDM] - Downloading:   5%|▌         | 384k/7.40M [00:00&lt;00:03, 2.09MB/s][WDM] - Downloading:   9%|▉         | 712k/7.40M [00:00&lt;00:02, 2.66MB/s][WDM] - Downloading:  13%|█▎        | 976k/7.40M [00:00&lt;00:03, 1.75MB/s][WDM] - Downloading:  17%|█▋        | 1.27M/7.40M [00:00&lt;00:02, 2.17MB/s][WDM] - Downloading:  20%|██        | 1.52M/7.40M [00:00&lt;00:03, 1.79MB/s][WDM] - Downloading:  35%|███▌      | 2.60M/7.40M [00:00&lt;00:01, 4.00MB/s][WDM] - Downloading:  42%|████▏     | 3.07M/7.40M [00:01&lt;00:01, 3.68MB/s][WDM] - Downloading:  47%|████▋     | 3.48M/7.40M [00:01&lt;00:01, 3.61MB/s][WDM] - Downloading:  52%|█████▏    | 3.88M/7.40M [00:01&lt;00:01, 3.48MB/s][WDM] - Downloading:  57%|█████▋    | 4.24M/7.40M [00:01&lt;00:00, 3.39MB/s][WDM] - Downloading:  62%|██████▏   | 4.59M/7.40M [00:01&lt;00:00, 3.39MB/s][WDM] - Downloading:  67%|██████▋   | 4.93M/7.40M [00:01&lt;00:00, 3.32MB/s][WDM] - Downloading:  71%|███████   | 5.26M/7.40M [00:01&lt;00:00, 3.24MB/s][WDM] - Downloading:  76%|███████▌  | 5.60M/7.40M [00:01&lt;00:00, 3.30MB/s][WDM] - Downloading:  80%|████████  | 5.92M/7.40M [00:02&lt;00:00, 3.25MB/s][WDM] - Downloading:  84%|████████▍ | 6.24M/7.40M [00:02&lt;00:00, 3.23MB/s][WDM] - Downloading:  89%|████████▊ | 6.55M/7.40M [00:02&lt;00:00, 3.23MB/s][WDM] - Downloading:  95%|█████████▌| 7.05M/7.40M [00:02&lt;00:00, 3.78MB/s][WDM] - Downloading: 100%|██████████| 7.40M/7.40M [00:02&lt;00:00, 3.17MB/s]
+<br/> ----------------------------Captured stdout teardown---------------------------- <br/> Closing chrome driver
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/test_login_page_negative.py::TestNegativeScenarios::test_negative_login[chrome-incorrectUser-Password123-Your username is invalid!]</td>
+          <td class="col-duration">8.86</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/>[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/> -----------------------------Captured stdout setup------------------------------ <br/> Creating chrome driver
+<br/> -----------------------------Captured stderr setup------------------------------ <br/>[WDM] - Downloading:   0%|          | 0.00/7.40M [00:00&lt;?, ?B/s][WDM] - Downloading:   1%|▏         | 112k/7.40M [00:00&lt;00:07, 1.09MB/s][WDM] - Downloading:   6%|▌         | 424k/7.40M [00:00&lt;00:03, 2.27MB/s][WDM] - Downloading:  10%|▉         | 752k/7.40M [00:00&lt;00:02, 2.75MB/s][WDM] - Downloading:  14%|█▎        | 1.01M/7.40M [00:00&lt;00:03, 1.85MB/s][WDM] - Downloading:  20%|█▉        | 1.45M/7.40M [00:00&lt;00:02, 2.42MB/s][WDM] - Downloading:  23%|██▎       | 1.70M/7.40M [00:00&lt;00:02, 2.09MB/s][WDM] - Downloading:  39%|███▉      | 2.90M/7.40M [00:00&lt;00:01, 4.54MB/s][WDM] - Downloading:  46%|████▋     | 3.42M/7.40M [00:01&lt;00:00, 4.30MB/s][WDM] - Downloading:  53%|█████▎    | 3.90M/7.40M [00:01&lt;00:00, 4.00MB/s][WDM] - Downloading:  59%|█████▊    | 4.33M/7.40M [00:01&lt;00:00, 3.86MB/s][WDM] - Downloading:  64%|██████▍   | 4.73M/7.40M [00:01&lt;00:00, 3.79MB/s][WDM] - Downloading:  69%|██████▉   | 5.11M/7.40M [00:01&lt;00:00, 3.70MB/s][WDM] - Downloading:  74%|███████▍  | 5.48M/7.40M [00:01&lt;00:00, 3.62MB/s][WDM] - Downloading:  79%|███████▉  | 5.85M/7.40M [00:01&lt;00:00, 3.67MB/s][WDM] - Downloading:  84%|████████▍ | 6.21M/7.40M [00:01&lt;00:00, 3.57MB/s][WDM] - Downloading:  89%|████████▉ | 6.57M/7.40M [00:02&lt;00:00, 3.59MB/s][WDM] - Downloading:  94%|█████████▎| 6.92M/7.40M [00:02&lt;00:00, 3.57MB/s][WDM] - Downloading:  98%|█████████▊| 7.27M/7.40M [00:02&lt;00:00, 3.56MB/s][WDM] - Downloading: 100%|██████████| 7.40M/7.40M [00:02&lt;00:00, 3.41MB/s]
+<br/> ----------------------------Captured stdout teardown---------------------------- <br/> Closing chrome driver
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">tests/test_login_page_negative.py::TestNegativeScenarios::test_negative_login[chrome-student-incorrectPassword-Your password is invalid!]</td>
+          <td class="col-duration">4.61</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/>[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python[gw1] darwin -- Python 3.9.6 /Users/victoria.gullotti/PycharmProjects/SeleniumWebDriver2022/venv/bin/python<br/> -----------------------------Captured stdout setup------------------------------ <br/> Creating chrome driver
+<br/> ----------------------------Captured stdout teardown---------------------------- <br/> Closing chrome driver
+<br/></div></td></tr></tbody></table></body></html>
