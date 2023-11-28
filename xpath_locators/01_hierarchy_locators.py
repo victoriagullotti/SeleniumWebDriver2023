@@ -1,4 +1,6 @@
-# Get xpath in console of browser
+import webdriver_manager
+
+# Get xpath in a console of browser
 # $x('//*[@id="login"]/ul/li[2]/b[2]')
 
 # Get input field inside parent div with id 'row2'
@@ -14,7 +16,7 @@ input_inside_rows_locator = '//div[@id="rows"]//input'
 # /
 # Root of the current element.
 body_absolute_locator = '/html/body'
-input_inside_div = '//div[@id='row2"]/input'
+input_inside_div = '//div[@id="row2"]/input'
 
 # .//
 # From the current element only
